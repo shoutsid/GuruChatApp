@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "master" ]
 jobs:
   ios-build:
     name: iOS Dev Build
