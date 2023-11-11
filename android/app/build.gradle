@@ -80,6 +80,11 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        project.ext.react = [
+            entryFile: "index.js",
+            enableHermes: true // clean and rebuild if changing
+        ]
+
     }
     signingConfigs {
         debug {

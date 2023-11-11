@@ -1,4 +1,12 @@
 {
-  "name": "Guru Chat",
-  "displayName": "Guru Chat"
+  "name": "GuruChatApp",
+  "displayName": "Guru Chat",
+  "expo": {
+    "name": "guru-chat",
+    "extra": {
+      "eas": {
+        "projectId": "3fab9d44-a1fa-4d74-950a-a458cf00c5af"
+      }
+    }
+  }
 }

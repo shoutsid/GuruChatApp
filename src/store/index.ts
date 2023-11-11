@@ -1,10 +1,11 @@
 // src/store/index.ts
 import {createStore, applyMiddleware} from 'redux';
-import {getAIResponse} from '../api/chatService';
+import {createThread, createUser} from '../api/chatService';
 import thunk from 'redux-thunk';
 import {persistStore, persistReducer} from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
+import {User} from '../client/models/user';
 
 const persistConfig = {
   key: 'root',
@@ -13,58 +14,81 @@ const persistConfig = {
 };
 
 interface ChatState {
-  messages: string[];
+  messages: {text: string; isGuru: boolean; timestamp: string}[];
+  thread_id?: number;
+  user_id?: number;
+  user?: User;
 }
 
 const initialState: ChatState = {
   messages: [],
+  thread_id: undefined,
+  user_id: undefined,
+  user: undefined,
 };
 
 // Actions
 const SEND_MESSAGE = 'SEND_MESSAGE';
 const RECEIVE_MESSAGE = 'RECEIVE_MESSAGE';
-
-// Action Creators
-export const sendMessage = (message, callback) => async dispatch => {
-  dispatch({
-    type: SEND_MESSAGE,
-    payload: message,
-  });
-
-  setTimeout(async () => {
-    try {
-      const reply = await getAIResponse(message);
-      dispatch({
-        type: RECEIVE_MESSAGE,
-        payload: reply,
-      });
-    } catch (error) {
-      // Handle the error, e.g., by showing an alert or a toast to the user
-      console.error('Error in sendMessage:', error);
-    }
-    callback();
-  }, 1000); // 2 seconds delay
-};
+const RESET = 'RESET';
+const CREATE_THREAD = 'CREATE_THREAD';
+const LOAD_HOME_SCREEN = 'LOAD_HOME_SCREEN';
+const UPDATE_USER_ID = 'UPDATE_USER_ID';
+const UPDATE_THREAD_ID = 'UPDATE_THREAD_ID';
 
 // Reducer
-const chatReducer = (state = initialState, action) => {
+// DO NOT MAKE ASYNC REQUESTS HERE,
+// DATA SHOULD BE PASSED IN AS ACTION PAYLOAD
+const chatReducer = (
+  state: ChatState | undefined = initialState,
+  action: any,
+) => {
+  console.log('EVENT: ', action.type);
+
   switch (action.type) {
+    case RESET:
+      return {
+        ...state,
+        messages: [],
+        thread_id: undefined,
+        user_id: undefined,
+        user: undefined,
+      };
+    case UPDATE_USER_ID:
+      return {
+        ...state,
+        user_id: action.payload,
+      };
+    case UPDATE_THREAD_ID:
+      return {
+        ...state,
+        thread_id: action.payload,
+      };
+    case LOAD_HOME_SCREEN:
+      return {...state};
     case SEND_MESSAGE:
       return {
         ...state,
-        messages: [{text: action.payload, isGuru: false}, ...state.messages],
+        messages: [action.payload, ...state.messages],
       };
     case RECEIVE_MESSAGE:
       return {
         ...state,
-        messages: [{text: action.payload, isGuru: true}, ...state.messages],
+        messages: [action.payload, ...state.messages],
+      };
+    case CREATE_THREAD:
+      // const thread_id = await createThread();
+      // console.log('CREATE_THREAD index.ts - thread_id ', thread_id);
+      // action.payload.thread_id = thread_id;
+      return {
+        ...state,
+        thread_id: action.payload.thread_id,
       };
     default:
       return state;
   }
 };
 
-// export const store = createStore(chatReducer, applyMiddleware(thunk));
 const persistedReducer = persistReducer(persistConfig, chatReducer);
 export const store = createStore(persistedReducer, applyMiddleware(thunk));
 export const persistor = persistStore(store);
