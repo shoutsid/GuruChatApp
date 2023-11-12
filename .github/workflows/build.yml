@@ -36,34 +36,15 @@ jobs:
       - name: Build iOS JS Bundle
         run: |
           npx react-native run-ios --configuration Release
-  android-build:
-    name: Android Dev Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Show self-hosted machine infomation
-        run: uname -a
-      - name: Checkout repo from dev branch
-        uses: actions/checkout@v3
-        with:
-          ref: master
-      - name: Install npm dependency
-        run: npm install
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-      - name: Execute Gradle build
+      - name: Find Build Artifact
+        id: find-build
         run: |
-          cd android
-          ./gradlew build
-      - name: Build Android JS Bundle
-        run: |
-          yarn run package-android
+          APP_PATH=$(find $RUNNER_TEMP -name "GuruChatApp.app" | head -n 1)
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ios-build-artifact
+          path: ${{ env.APP_PATH }}
+          retention-days: 30
