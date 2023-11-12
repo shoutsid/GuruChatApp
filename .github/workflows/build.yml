@@ -4,18 +4,16 @@ on:
 jobs:
   ios-build:
     name: iOS Dev Build
-    runs-on: self-hosted
+    runs-on: macos-latest
     steps:
       - name: Show self-hosted machine infomation
         run: uname -a
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.9.1
-      - name: Checkout repo from dev branch
+      - name: Checkout repo from branch
         uses: actions/checkout@v3
         with:
-          ref: dev
+          ref: master
       - name: Install npm dependency
-        run: yarn install
+        run: npm install
       - name: Cache cocoapods
         uses: actions/cache@v3
         with:
@@ -29,33 +27,19 @@ jobs:
           bundle exec pod install
       - name: Build iOS JS Bundle
         run: |
-          yarn run package-ios
-      - name: Install bundler
-        run: |
-          cd ios
-          gem install bundler
-      - name: Install gem plugins
-        run: |
-          cd ios
-          bundle install
-      - name: Run fastlane
-        run: |
-          cd ios
-          bundle exec fastlane build_testflight
+          npx react-native run-ios --configuration Release
   android-build:
     name: Android Dev Build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Show self-hosted machine infomation
         run: uname -a
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.9.1
       - name: Checkout repo from dev branch
         uses: actions/checkout@v3
         with:
-          ref: dev
+          ref: master
       - name: Install npm dependency
-        run: yarn install
+        run: npm install
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
       - uses: actions/cache@v3
@@ -75,17 +59,3 @@ jobs:
       - name: Build Android JS Bundle
         run: |
           yarn run package-android
-      - name: Delete Android build duplicate assets resource
-        run: yarn run delete-pics
-      - name: Install bundler
-        run: |
-          cd android
-          gem install bundler
-      - name: Install gem plugins
-        run: |
-          cd android
-          bundle install
-      - name: Run fastlane
-        run: |
-          cd android
-          bundle exec fastlane build_qa
